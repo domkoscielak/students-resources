@@ -1,48 +1,47 @@
 import { statusFilters } from "./constants";
 
-const initialState = {
-  tasks: [],
-  filters: {
-    status: statusFilters.all,
-  },
+// oddzielny stan dla tasków i dla filtrów
+const tasksInitialState = [];
+const filtersInitialState = {
+  status: statusFilters.all,
 };
 
-export const rootReducer = (state = initialState, action) => {
+// reducer dla tasków
+const tasksReducer = (state = tasksInitialState, action) => {
   switch (action.type) {
-    case "tasks/addTask": {
-      return {
-        ...state,
-        tasks: [...state.tasks, action.payload],
-      };
-    }
+    case "tasks/addTask":
+      return [...state, action.payload];
     case "tasks/deleteTask":
-      return {
-        ...state,
-        tasks: state.tasks.filter((task) => task.id !== action.payload),
-      };
+      return state.filter((task) => task.id !== action.payload);
     case "tasks/toggleCompleted":
-      return {
-        ...state,
-        tasks: state.tasks.map((task) => {
-          if (task.id !== action.payload) {
-            return task;
-          }
-          return {
-            ...task,
-            completed: !task.completed,
-          };
-        }),
-      };
-    case "filters/setStatusFilter":
-      return {
-        ...state,
-        filters: {
-          ...state.filters,
-          status: action.payload,
-        },
-      };
-
+      return state.map((task) => {
+        if (task.id !== action.payload) {
+          return task;
+        }
+        return { ...task, completed: !task.completed };
+      });
     default:
       return state;
   }
+};
+
+// reducer dla filtrów
+const filtersReducer = (state = filtersInitialState, action) => {
+  switch (action.type) {
+    case "filters/setStatusFilter":
+      return {
+        ...state,
+        status: action.payload,
+      };
+    default:
+      return state;
+  }
+};
+
+// główny reducer
+export const rootReducer = (state = {}, action) => {
+  return {
+    tasks: tasksReducer(state.tasks, action),
+    filters: filtersReducer(state.filters, action),
+  };
 };
